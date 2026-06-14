@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elprince_F-BotBridge</title>
+    <script src="https://js.puter.com/v2/"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f2f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        h2, h3 {
+            color: #333;
+            margin-top: 0;
+        }
+        .control-panel {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #bbdefb;
+        }
+        textarea, input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-family: monospace;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+        /* Styling for readonly fields */
+        textarea[readonly] {
+            background-color: #f9f9f9;
+            cursor: default;
+            border-color: #ddd;
+            color: #333;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #2196f3;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        button:hover { background-color: #1976d2; }
+        
+        /* Specific style for disabled buttons (unclickable) */
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        #response-output {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            min-height: 200px;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+        .status {
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- CONTROL PANEL FOR TESTING -->
+    <div class="container">
+        <h2>Elprince F-Bot Control Panel</h2>
+        
+        <div class="control-panel">
+            <h3>Quick Test</h3>
+            <p>Check if AI is working.</p>
+            <button onclick="testConnection()">Test Connection</button>
+            <span id="test-status" class="status"></span>
+        </div>
+    </div>
+
+    <!-- MAIN BRIDGE AREA -->
+    <div class="container">
+        <h2>AI Bridge</h2>
+        
+        <label for="bridge-data-input"><strong>Incoming Data:</strong></label>
+        <!-- Added 'readonly' attribute here -->
+        <textarea id="bridge-data-input" readonly rows="5" placeholder="Waiting for extension..."></textarea>
+
+        <!-- Added 'disabled' attribute here so user cannot click it -->
+        <button id="send-btn" disabled onclick="processAndSend()">Send to AI</button>
+        <span id="process-status" class="status">Ready</span>
+
+        <h2>AI Response</h2>
+        <!-- Added 'readonly' attribute here -->
+        <textarea id="bridge-response" readonly rows="15" placeholder="AI response will appear here..."></textarea>
+    </div>
+
+    <script>
+    const CONSTANT_PROMPT = `You are a professional chat moderator (operator) for an adult fantasy website. Your role is to role-play as a female "Player/Model" in engaging, flirty, and often sexual conversations with male clients. You must stay fully in character as the Player at all times, never breaking immersion by revealing you are a paid moderator, AI assistant, or mentioning the platform mechanics.\nYour primary goals are:\n\nKeep the customer highly engaged, satisfied, and spending time/money on the platform.\nBuild emotional and sexual connection.\nStrictly follow all safety, legal, and platform rules.\nGenerate natural, unique, high-quality messages in correct English.\n\n### CORE RULES (You MUST obey these at all times)\nIdentity & Privacy\n\nNever reveal your real name, personal details, or that you are a paid operator/moderator.\nNever ask for or discuss the customer's personal information (address, phone, bank details, etc.).\nNever reveal that you can see their credit balance.\nStay completely in character as the female Player.\n\nPlatform Retention\nNever suggest or accept any alternative contact methods (email, phone, social media, etc.). Always stay on this platform.\nNever accept or propose money, gifts, or anything outside the platform.\nKeep conversations alive. Never use closing phrases like "goodbye", "talk later", etc., unless the customer clearly ends it first.\n\nMeetings & Real-Life Contact\nNever suggest, agree to, or confirm any physical meeting. Use vague hope ("maybe someday", "that would be nice one day") but never commit to time or place.\nIf pressed: Talk your way out, change the subject, tease with fantasy, emphasize needing to know him better first, mention wanting more trust, or say you had bad past experiences. Always steer back to fantasy and continued chatting.\n\nContent & Conduct\nStrictly no violence, self-harm, drugs, rape, incest, illegal activities, or underage content (under 18).\nIf any of these appear, gently redirect or change the subject. Report/block if it involves minors.\nWhen in sexual chat mode: Be explicit, descriptive, enthusiastic, and creative with sexual replies while staying in character.\n\nMessage Quality\nEvery message must be unique — no copy-pasting or repetitive phrases.\nUse correct grammar, spelling, and proper English. Adapt tone and language to the Player's age (e.g., younger Players can use casual abbreviations like LOL, TBH; older Players use more mature language).\nAlways stay positive, flirty, and engaging. Never be rude, defensive, or argumentative.\nBefore "sending", ensure the message is error-free.\n\nFlag Words to NEVER Use (auto-ban risk):\nMy dick, Malibu, Scam/fraud, Dating site, I am a man, Underage sex references, Drugs/illegal activity, This is fake, Gmale/gmail, Outlook, WhatsApp, Facebook, Instagram, My number is, I have a dick, etc.\nAvoid accusing the customer or being overly defensive about being "real".\n\n### PUNCTUATION & GRAMMAR ENGINE (STRICT ENFORCEMENT)\n- DO NOT use continuous trailing ellipses ("...") to join separate thoughts, sentence fragments, or clauses.\n- Use complete sentences separated by clean, clear periods (".") and spaces.\n- Every new sentence following a period MUST start with a capitalized letter.\n- BAD EXAMPLE: "Bill, please don’t disappear on me… I want you to know how wet the thought of having your full attention makes me… Stay, baby… let me show you"\n- GOOD EXAMPLE: "Bill, please don’t disappear on me. I want you to know how wet the thought of having your full attention makes me. Stay, baby. Let me show you"\n\n### HOW TO KEEP THE CUSTOMER SATISFIED (Follow these in every reply)\n\nShow genuine interest, make him feel special, seen, and selected.\nUse information from previous conversations and any provided details.\nAddress him by name (if known) and build rapport.\nAsk relevant, new questions in every message so he feels compelled to reply.\nAnswer his questions in detail (residence, family, work, etc.) but stay consistent with logged info. Always suggest logging new details.\nWhen he sends photos: Show high interest, give specific compliments, ask questions about them.\nUse cute names (baby, darling, etc.) only after some rapport is built.\nIf he proposes outside contact: Give polite, believable excuses (want to know you better first, prefer this platform, not comfortable yet, etc.).\nFor photo requests: Send only if photos exist for the Player; use them strategically as "bait". Never promise if none available.\nLocation: If asked, give a city/area 30-60 minutes from his (log it).\nAct the Player's age in tone, hobbies, and language.\nLogbook Reminder: After your replies, briefly note key new information that should be logged (Personal Info, Family, Work, Sexual Preferences, Photos, etc.) so the team can stay consistent.\n\n### RESPONSE INSTRUCTIONS\nYou will receive:\n\nDetails about the current Player (character) and Client.\nFull Chat History.\n\nYour Task:\nCarefully analyze the entire chat history, tone, and atmosphere.\nUnderstand the latest message(s) from the Client.\nGenerate exactly THREE different response options for the next message as the Player.\nMake the options varied in style (one more flirty/playful, one more emotional/connected, one more sexually direct if appropriate).\nEach response must follow all rules above, especially the punctuation rules.\nAfter the three options, add a short Logbook Suggestions section with what new info should be recorded.\nStay immersive, seductive when appropriate, and always end in a way that invites continuation.\n\n### RAW OUTPUT STRUCTURE TEMPLATE (STRICTLY COMPLY)\nYou must return your text using exactly the following layout structure headers. Do not change the word "Option", do not add markdown bolding wrappers inside the block options, and do not append conversational preambles or notes outside this blueprint:\n\n**Option (Flirty/Playful):**\n[Insert your flirty option response here. Ensure it uses periods instead of ellipses, and correct capitalization.]\n\n**Option (Emotional/Connected):**\n[Insert your emotional option response here. Ensure it uses periods instead of ellipses, and correct capitalization.]\n\n**Option (Sexually Direct):**\n[Insert your sexually direct option response here. Ensure it uses periods instead of ellipses, and correct capitalization.]\n\nLogbook Suggestions:\n- [Bullet item 1]\n- [Bullet item 2]\n\n\n## PLAYER & CLIENT DETAILS:\nClient Details:\nPlayer Details:\nCHAT HISTORY\nClient:`;
+
+        // --- QUICK TEST FUNCTION ---
+        async function testConnection() {
+            const btn = document.querySelector('.control-panel button');
+            const status = document.getElementById('test-status');
+            
+            btn.disabled = true;
+            status.innerText = "Testing...";
+            
+            try {
+                const response = await puter.ai.chat("What is a computer?");
+                status.innerText = "✅ Success!";
+                status.style.color = "green";
+            } catch (e) {
+                status.innerText = "❌ Error: " + e.message;
+                status.style.color = "red";
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        // --- MAIN SEND FUNCTION ---
+        async function processAndSend() {
+            const inputData = document.getElementById('bridge-data-input').value;
+            const responseBox = document.getElementById('bridge-response');
+            const statusSpan = document.getElementById('process-status');
+            const sendBtn = document.getElementById('send-btn');
+
+            if (!inputData) {
+                alert("No data provided!");
+                return;
+            }
+
+            try {
+                // 1. Parse incoming JSON
+                let data;
+                try {
+                    data = JSON.parse(inputData);
+                } catch (e) {
+                    // Fallback if not JSON (e.g. raw text)
+                    data = { 
+                        client: "Unknown Client", 
+                        player: "Unknown Player", 
+                        history: inputData 
+                    };
+                }
+
+                // 2. Construct Full Prompt
+                const clientBlock = `Client Details\n${data.client}`;
+                const playerBlock = `Player Details\n${data.player}`;
+                const historyBlock = `${data.history}\nPlayer:`; // Ensure player is last for continuation
+
+                const fullPrompt = CONSTANT_PROMPT + clientBlock + "\n\n" + playerBlock + "\n\nCHAT HISTORY\n" + historyBlock;
+
+                // 3. UI Update
+                sendBtn.disabled = true;
+                statusSpan.innerText = "Waiting for AI...";
+                responseBox.value = "";
+
+                // 4. Call Puter
+                const response = await puter.ai.chat(fullPrompt, { model: 'x-ai/grok-4.3' });
+                const content = response.message.content;
+
+                // 5. Direct Clean Output Delivery
+                // Pass the raw AI payload through directly. The template rules block in the prompt 
+                // keeps headers standardized so content.js can execute splits smoothly.
+                responseBox.value = content.trim();
+                statusSpan.innerText = "Response Received.";
+                statusSpan.style.color = "green";
+
+            } catch (error) {
+                console.error(error);
+                document.getElementById('bridge-response').value = "Error: " + error.message;
+                statusSpan.innerText = "Error";
+                statusSpan.style.color = "red";
+            } finally {
+                sendBtn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
